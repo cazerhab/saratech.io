@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Status App</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+</head>
+<body>
+    <div class="iphone">
+        <div class="notch">
+            <div class="camera"></div>
+        </div>
+        <div class="screen" id="appContent" style="display: none;">
+            <div id="content"></div>
+            <div class="navbar">
+                <button class="nav-button" data-section="Devices">Devices</button>
+                <button class="nav-button" data-section="Bluetooth">WIFI</button>
+                <button class="nav-button" data-section="Settings">Settings</button>
+                <button class="nav-button" data-section="Description">Description</button>
+            </div>
+        </div>
+        <div id="loginForm">
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="login()">Login</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navButtons = document.querySelectorAll('.nav-button');
+            navButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    updateContent(this.getAttribute('data-section'));
+                });
+            });
+        });
+
+        function updateContent(section) {
+            const content = document.getElementById('content');
+            let htmlContent = '';
+            switch(section) {
+                case 'Devices':
+                    htmlContent = '<h2>Devices</h2><p>Device list and statuses here...</p>';
+                    break;
+                case 'Bluetooth':
+                    htmlContent = '<h2>WiFi</h2><p>WiFi settings and controls here...</p>';
+                    break;
+                case 'Location':
+                    htmlContent = '<h2>Location</h2><div id="map" style="height: 300px;"></div>';
+                    getCurrentLocation();
+                    break;
+                case 'Settings':
+                    htmlContent = '<h2>Settings</h2><p>App settings and preferences here...</p>';
+                    break;
+                case 'Description':
+                    htmlContent = '<h2>Descriptions</h2><p>Description and guide content here...</p>';
+                    break;
+                default:
+                    htmlContent = '<p>Please select a section.</p>';
+            }
+            content.innerHTML = htmlContent;
+            content.style.animation = 'none';
+            setTimeout(() => content.style.animation = 'fadeIn 0.5s', 0);
+        }
+
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showMap, showError);
+            } else {
+                document.getElementById('map').innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        function showMap(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const map = L.map('map').setView([latitude, longitude], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            L.marker([latitude, longitude]).addTo(map)
+                .bindPopup('Your current location').openPopup();
+        }
+
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById('map').innerHTML = "User denied the request for Geolocation.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById('map').innerHTML = "Location information is unavailable.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById('map').innerHTML = "The request to get user location timed out.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    document.getElementById('map').innerHTML = "An unknown error occurred.";
+                    break;
+            }
+        }
+
+        function login() {
+            var username = document.getElementById('username').value;
+            var password = document.getElementById('password').value;
+            if (username === 'admin' && password === 'admin') {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('appContent').style.display = 'block';
+                updateContent('Devices');
+            } else {
+                alert('Invalid Credentials');
+            }
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
